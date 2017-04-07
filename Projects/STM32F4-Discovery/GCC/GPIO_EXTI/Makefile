@@ -25,7 +25,8 @@ PRINTF  = $(Q)@printf
 MAKE    = $(Q)make
 CAT     = $(Q)cat
 
-SourcePath = /home/kyChu/kyChuGit/STM32CubeF4
+SourcePath = /home/kychu/MyGit/STM32CubeF4
+BuildPath = $(SourcePath)/Build
 
 DEFS = -DUSE_HAL_DRIVER -DSTM32F407xx
 
@@ -72,7 +73,10 @@ LDFLAGS = -mcpu=cortex-m4 -mabi=aapcs-linux -mthumb $(FP_FLAGS) \
 
 all:GPIO_EXTI.bin
 
-GPIO_EXTI.bin:GPIO_EXTI.elf
+$(BuildPath):
+	$(MKDIR) -p $@
+
+GPIO_EXTI.bin:GPIO_EXTI.elf | $(BuildPath)
 	$(OBJCOPY) -O binary -S $< $@
 
 GPIO_EXTI.elf:$(OBJS)

@@ -85,9 +85,21 @@ int main(void)
   /* Configure the system clock to 168 MHz */
   SystemClock_Config();
 
+  BSP_LED_On(LED3);
+  BSP_LED_On(LED4);
+  BSP_LED_On(LED5);
+  BSP_LED_On(LED6);
   /* Infinite loop */
   while (1)
   {
+    BSP_LED_Toggle(LED3);
+    HAL_Delay(200);
+    BSP_LED_Toggle(LED4);
+    HAL_Delay(200);
+    BSP_LED_Toggle(LED5);
+    HAL_Delay(200);
+    BSP_LED_Toggle(LED6);
+    HAL_Delay(200);
   }
 }
 
