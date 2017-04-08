@@ -7,6 +7,8 @@ OBJS  = $(addprefix $(BUILD)/, $(SRC_S:.s=.o))
 OBJS += $(addprefix $(BUILD)/, $(notdir $(SRC_C:.c=.o)))
 OBJ_DIRS = $(sort $(dir $(OBJS)))
 
+FW_OBJS += $(wildcard $(BUILD)/*.o)
+
 all: | $(OBJ_DIRS) $(OBJS)
 
 $(OBJ_DIRS):
