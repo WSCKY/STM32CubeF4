@@ -50,7 +50,7 @@ MainPath = $(TopPath)/$(ProjPath)
 # HAL path
 HALPath = Drivers/STM32F4xx_HAL_Driver
 # BSP path
-BSPPath = Drivers/BSP/$(BoardName)
+BSPPath = Drivers/BSP
 # CMSIS path
 CMSISPath = Drivers/CMSIS
 # USB_Device path
@@ -62,8 +62,10 @@ DEFS += -DUSE_HAL_DRIVER
 # -main include
 INCS +=	-I$(MainPath)/Inc/
 # -BSP include
-INCS +=	-I${TopPath}/$(BSPPath) \
-        -I${TopPath}/Drivers/BSP/Components/Common/
+INCS +=	-I${TopPath}/$(BSPPath)/$(BoardName) \
+        -I${TopPath}/$(BSPPath)/Components/lis302dl/ \
+        -I${TopPath}/$(BSPPath)/Components/lis3dsh/
+#        -I${TopPath}/$(BSPPath)/Components/Common/
 # -HAL include
 INCS +=	-I${TopPath}/$(HALPath)/Inc/
 # -CMSIS include
@@ -71,12 +73,12 @@ INCS +=	-I${TopPath}/$(CMSISPath)/Include/ \
         -I${TopPath}/$(CMSISPath)/Device/ST/STM32F4xx/Include/
 # -USB_Device include
 INCS += -I$(TopPath)/$(USBDPath)/Core/Inc \
-        -I$(TopPath)/$(USBDPath)/Class/AUDIO/Inc \
-        -I$(TopPath)/$(USBDPath)/Class/CDC/Inc \
-        -I$(TopPath)/$(USBDPath)/Class/CustomHID/Inc \
-        -I$(TopPath)/$(USBDPath)/Class/DFU/Inc \
-        -I$(TopPath)/$(USBDPath)/Class/HID/Inc \
-        -I$(TopPath)/$(USBDPath)/Class/MSC/Inc
+        -I$(TopPath)/$(USBDPath)/Class/HID/Inc
+#        -I$(TopPath)/$(USBDPath)/Class/AUDIO/Inc \
+#        -I$(TopPath)/$(USBDPath)/Class/CDC/Inc \
+#        -I$(TopPath)/$(USBDPath)/Class/CustomHID/Inc \
+#        -I$(TopPath)/$(USBDPath)/Class/DFU/Inc \
+#        -I$(TopPath)/$(USBDPath)/Class/MSC/Inc
 
 #OBJECTS
 # -proj objects
@@ -85,6 +87,9 @@ FW_OBJS += $(wildcard $(BuildPath)/Projects/$(ProjName)/*.o)
 FW_OBJS += $(wildcard $(BuildPath)/BSPDriver/$(BoardName)/*.o)
 # -HAL objects
 FW_OBJS += $(wildcard $(BuildPath)/HALDriver/*.o)
+# -USB_Device objects
+FW_OBJS += $(wildcard $(BuildPath)/USB_Device/Core/*.o)
+FW_OBJS += $(wildcard $(BuildPath)/USB_Device/Class/*.o)
 
 #Debugging/Optimization
 DEBUG_FLAGS ?= -Os -ggdb3
@@ -101,11 +106,11 @@ CFLAGS += -std=gnu99 \
          -fdata-sections \
          -ffunction-sections \
          -fsingle-precision-constant \
-         -Wdouble-promotion \
-         -g \
+         -Wdouble-promotion
+#         -g \
 #         -Wundef \
-         -fno-builtin \
-         -lnosys
+#         -fno-builtin \
+#         -lnosys
 
 CFLAGS += -mcpu=cortex-m4 -mtune=cortex-m4 $(DEBUG_FLAGS) $(FP_FLAGS)
 LDFLAGS = -mcpu=cortex-m4 -mabi=aapcs-linux -mthumb $(FP_FLAGS) \
@@ -128,7 +133,7 @@ export CFLAGS
 export LDFLAGS
 export DEFS
 export INCS
-export FW_OBJS
+#export FW_OBJS
 
 ###################################################
 all:$(ProjName)
@@ -139,10 +144,11 @@ $(OutPath):
 	$(MKDIR) -p $@
 
 FIRMWARE_OBJS:
-	$(MAKE) -C $(ProjPath)          BUILD=$(BuildPath)/Projects/$(ProjName)
-	$(MAKE) -C $(HALPath)           BUILD=$(BuildPath)/HALDriver
-	$(MAKE) -C $(BSPPath)           BUILD=$(BuildPath)/BSPDriver/$(BoardName)
-	$(MAKE) -C $(USBDPath)          BUILD=$(BuildPath)/USB_Device
+	$(MAKE) -C $(ProjPath) BUILD=$(BuildPath)/Projects/$(ProjName)
+	$(MAKE) -C $(HALPath)  BUILD=$(BuildPath)/HALDriver
+	$(MAKE) -C $(BSPPath)/$(BoardName)  BUILD=$(BuildPath)/BSPDriver/$(BoardName)
+	$(MAKE) -C $(BSPPath)/Components    BUILD=$(BuildPath)/BSPDriver/Components
+	$(MAKE) -C $(USBDPath) BUILD=$(BuildPath)/USB_Device             DEV_TYPE=HID
 
 $(ProjName): FIRMWARE_OBJS | $(BuildPath) $(OutPath)
 	$(CPP) -P -E $(ProjPath)/$(LDFile) > $(BuildPath)/stm32fxxx.lds

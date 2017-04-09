@@ -6,7 +6,8 @@ SRCS = $(wildcard Src/*.c)
 OBJS = $(addprefix $(BUILD)/, $(notdir $(SRCS:.c=.o)))
 OBJ_DIRS = $(sort $(dir $(OBJS)))
 
-FW_OBJS += $(wildcard $(BUILD)/*.o)
+#add to FW_OBJS(export variable)
+#FW_OBJS += $(wildcard $(BUILD)/*.o)
 
 all: | $(OBJ_DIRS) $(OBJS)
 
