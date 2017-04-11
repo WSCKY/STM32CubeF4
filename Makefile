@@ -16,6 +16,8 @@ ifeq ($(V), 1)
 Q =
 else
 Q = @
+# Do not print "Entering directory ...".
+MAKEFLAGS += --no-print-directory
 endif
 
 # Commands
@@ -62,10 +64,7 @@ DEFS += -DUSE_HAL_DRIVER
 # -main include
 INCS +=	-I$(MainPath)/Inc/
 # -BSP include
-INCS +=	-I${TopPath}/$(BSPPath)/$(BoardName) \
-        -I${TopPath}/$(BSPPath)/Components/lis302dl/ \
-        -I${TopPath}/$(BSPPath)/Components/lis3dsh/
-#        -I${TopPath}/$(BSPPath)/Components/Common/
+INCS +=	-I${TopPath}/$(BSPPath)/$(BoardName)
 # -HAL include
 INCS +=	-I${TopPath}/$(HALPath)/Inc/
 # -CMSIS include
@@ -74,17 +73,18 @@ INCS +=	-I${TopPath}/$(CMSISPath)/Include/ \
 # -USB_Device include
 INCS += -I$(TopPath)/$(USBDPath)/Core/Inc \
         -I$(TopPath)/$(USBDPath)/Class/HID/Inc
-#        -I$(TopPath)/$(USBDPath)/Class/AUDIO/Inc \
-#        -I$(TopPath)/$(USBDPath)/Class/CDC/Inc \
-#        -I$(TopPath)/$(USBDPath)/Class/CustomHID/Inc \
-#        -I$(TopPath)/$(USBDPath)/Class/DFU/Inc \
-#        -I$(TopPath)/$(USBDPath)/Class/MSC/Inc
+
+# CMSIS LIB
+LIB_DIR += -L${TopPath}/$(CMSISPath)/Lib/GCC
+LIBS    += -l${TopPath}/$(CMSISPath)/Lib/GCC/libarm_cortexM4lf_math.a
 
 #OBJECTS
 # -proj objects
 FW_OBJS += $(wildcard $(BuildPath)/Projects/$(ProjName)/*.o)
 # -BSP objects
 FW_OBJS += $(wildcard $(BuildPath)/BSPDriver/$(BoardName)/*.o)
+FW_OBJS += $(wildcard $(BuildPath)/BSPDriver/Components/lis3dsh/*.o)
+FW_OBJS += $(wildcard $(BuildPath)/BSPDriver/Components/lis302dl/*.o)
 # -HAL objects
 FW_OBJS += $(wildcard $(BuildPath)/HALDriver/*.o)
 # -USB_Device objects
@@ -106,7 +106,9 @@ CFLAGS += -std=gnu99 \
          -fdata-sections \
          -ffunction-sections \
          -fsingle-precision-constant \
-         -Wdouble-promotion
+         -Wdouble-promotion \
+         --specs=rdimon.specs \
+         -Wl,--start-group -lgcc -lc -lm -lrdimon -Wl,--end-group
 #         -g \
 #         -Wundef \
 #         -fno-builtin \
@@ -144,11 +146,11 @@ $(OutPath):
 	$(MKDIR) -p $@
 
 FIRMWARE_OBJS:
-	$(MAKE) -C $(ProjPath) BUILD=$(BuildPath)/Projects/$(ProjName)
-	$(MAKE) -C $(HALPath)  BUILD=$(BuildPath)/HALDriver
-	$(MAKE) -C $(BSPPath)/$(BoardName)  BUILD=$(BuildPath)/BSPDriver/$(BoardName)
-	$(MAKE) -C $(BSPPath)/Components    BUILD=$(BuildPath)/BSPDriver/Components
-	$(MAKE) -C $(USBDPath) BUILD=$(BuildPath)/USB_Device             DEV_TYPE=HID
+	$(MAKE) -C $(ProjPath) $(MAKEFLAGS) BUILD=$(BuildPath)/Projects/$(ProjName)
+	$(MAKE) -C $(HALPath)  $(MAKEFLAGS) BUILD=$(BuildPath)/HALDriver
+	$(MAKE) -C $(USBDPath) $(MAKEFLAGS) BUILD=$(BuildPath)/USB_Device             DEV_TYPE=HID
+	$(MAKE) -C $(BSPPath)/$(BoardName) $(MAKEFLAGS) BUILD=$(BuildPath)/BSPDriver/$(BoardName)
+	$(MAKE) -C $(BSPPath)/Components   $(MAKEFLAGS) BUILD=$(BuildPath)/BSPDriver/Components
 
 $(ProjName): FIRMWARE_OBJS | $(BuildPath) $(OutPath)
 	$(CPP) -P -E $(ProjPath)/$(LDFile) > $(BuildPath)/stm32fxxx.lds
