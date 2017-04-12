@@ -103,14 +103,16 @@ CFLAGS += -std=gnu99 \
          -mthumb \
          -nostartfiles \
          -mabi=aapcs-linux \
-         -fdata-sections \
-         -ffunction-sections \
+         -ffunction-sections -fdata-sections \
          -fsingle-precision-constant \
          -Wdouble-promotion \
          --specs=rdimon.specs \
-         -Wl,--start-group -lgcc -lc -lm -lrdimon -Wl,--end-group
+         -Wl,--start-group -lgcc -lg -lc -lm -lrdimon -Wl,--end-group \
+         -Wimplicit-function-declaration \
+          -Wstrict-prototypes 
+#         -Wredundant-decls -Wextra -Wmissing-prototypes
+#         -Wundef -Wshadow
 #         -g \
-#         -Wundef \
 #         -fno-builtin \
 #         -lnosys
 
