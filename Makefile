@@ -6,7 +6,7 @@ ProjName = Demonstrations
 ProjPath = Projects/STM32F4-Discovery/Demonstrations
 # platform
 BoardName = STM32F4-Discovery
-DEFS += -DSTM32F407xx
+DEFS += -DSTM32F407xx -DUSE_STM32F4_DISCO
 # Link file
 LDFile = STM32F407VGTx_FLASH.ld
 ##################### Projrct Definition #####################
