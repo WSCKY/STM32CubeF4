@@ -2,8 +2,10 @@
 # Targets
 #ProjName = GPIO_EXTI
 #ProjPath = Projects/STM32F4-Discovery/GCC/GPIO_EXTI
-ProjName = Demonstrations
-ProjPath = Projects/STM32F4-Discovery/Demonstrations
+#ProjName = Demonstrations
+#ProjPath = Projects/STM32F4-Discovery/Demonstrations
+ProjName = BSP_Demo
+ProjPath = Projects/STM32F4-Discovery/Examples/BSP
 # platform
 BoardName = STM32F4-Discovery
 DEFS += -DSTM32F407xx -DUSE_STM32F4_DISCO
@@ -71,12 +73,14 @@ INCS +=	-I${TopPath}/$(HALPath)/Inc/
 INCS +=	-I${TopPath}/$(CMSISPath)/Include/ \
         -I${TopPath}/$(CMSISPath)/Device/ST/STM32F4xx/Include/
 # -USB_Device include
-INCS += -I$(TopPath)/$(USBDPath)/Core/Inc \
-        -I$(TopPath)/$(USBDPath)/Class/HID/Inc
-
+#INCS += -I$(TopPath)/$(USBDPath)/Core/Inc \
+#        -I$(TopPath)/$(USBDPath)/Class/HID/Inc
+INCS += -I${TopPath}/Middlewares/ST/STM32_Audio/Addons/PDM
 # CMSIS LIB
-LIB_DIR += -L${TopPath}/$(CMSISPath)/Lib/GCC
-LIBS    += -l${TopPath}/$(CMSISPath)/Lib/GCC/libarm_cortexM4lf_math.a
+#LIB_DIR += -L${TopPath}/$(CMSISPath)/Lib/GCC
+#LIBS    += -llibarm_cortexM4lf_math
+LIB_DIR = -L${TopPath}/Middlewares/ST/STM32_Audio/Addons/PDM -l${TopPath}/Middlewares/ST/STM32_Audio/Addons/PDM/libPDMFilter_CM7F_GCC.a
+#LIBS    += -llibPDMFilter_CM7F_GCC
 
 #OBJECTS
 # -proj objects
@@ -85,11 +89,12 @@ FW_OBJS += $(wildcard $(BuildPath)/Projects/$(ProjName)/*.o)
 FW_OBJS += $(wildcard $(BuildPath)/BSPDriver/$(BoardName)/*.o)
 FW_OBJS += $(wildcard $(BuildPath)/BSPDriver/Components/lis3dsh/*.o)
 FW_OBJS += $(wildcard $(BuildPath)/BSPDriver/Components/lis302dl/*.o)
+FW_OBJS += $(wildcard $(BuildPath)/BSPDriver/Components/cs43l22/*.o)
 # -HAL objects
 FW_OBJS += $(wildcard $(BuildPath)/HALDriver/*.o)
 # -USB_Device objects
-FW_OBJS += $(wildcard $(BuildPath)/USB_Device/Core/*.o)
-FW_OBJS += $(wildcard $(BuildPath)/USB_Device/Class/*.o)
+#FW_OBJS += $(wildcard $(BuildPath)/USB_Device/Core/*.o)
+#FW_OBJS += $(wildcard $(BuildPath)/USB_Device/Class/*.o)
 
 #Debugging/Optimization
 DEBUG_FLAGS ?= -Os -ggdb3
@@ -108,13 +113,13 @@ CFLAGS += -std=gnu99 \
          -Wdouble-promotion \
          --specs=rdimon.specs \
          -Wl,--start-group -lgcc -lg -lc -lm -lrdimon -Wl,--end-group \
-         -Wimplicit-function-declaration \
-          -Wstrict-prototypes 
+         -Wimplicit-function-declaration -Wstrict-prototypes \
+         -lnosys \
+         -Wl,-gc-sections \
+         -Wl,-g
 #         -Wredundant-decls -Wextra -Wmissing-prototypes
 #         -Wundef -Wshadow
-#         -g \
 #         -fno-builtin \
-#         -lnosys
 
 CFLAGS += -mcpu=cortex-m4 -mtune=cortex-m4 $(DEBUG_FLAGS) $(FP_FLAGS)
 LDFLAGS = -mcpu=cortex-m4 -mabi=aapcs-linux -mthumb $(FP_FLAGS) \
@@ -150,13 +155,13 @@ $(OutPath):
 FIRMWARE_OBJS:
 	$(MAKE) -C $(ProjPath) $(MAKEFLAGS) BUILD=$(BuildPath)/Projects/$(ProjName)
 	$(MAKE) -C $(HALPath)  $(MAKEFLAGS) BUILD=$(BuildPath)/HALDriver
-	$(MAKE) -C $(USBDPath) $(MAKEFLAGS) BUILD=$(BuildPath)/USB_Device             DEV_TYPE=HID
+#	$(MAKE) -C $(USBDPath) $(MAKEFLAGS) BUILD=$(BuildPath)/USB_Device             DEV_TYPE=HID
 	$(MAKE) -C $(BSPPath)/$(BoardName) $(MAKEFLAGS) BUILD=$(BuildPath)/BSPDriver/$(BoardName)
 	$(MAKE) -C $(BSPPath)/Components   $(MAKEFLAGS) BUILD=$(BuildPath)/BSPDriver/Components
 
 $(ProjName): FIRMWARE_OBJS | $(BuildPath) $(OutPath)
 	$(CPP) -P -E $(ProjPath)/$(LDFile) > $(BuildPath)/stm32fxxx.lds
-	$(CC) $(LDFLAGS) $(FW_OBJS) -o $(OutPath)/$(ProjName).elf
+	$(CC) $(LDFLAGS) $(LIB_DIR) $(LIBS) $(FW_OBJS) -o $(OutPath)/$(ProjName).elf
 	$(OBJCOPY) -Obinary -S $(OutPath)/$(ProjName).elf $(OutPath)/$(ProjName).bin
 	$(SIZE) $(OutPath)/$(ProjName).elf
 

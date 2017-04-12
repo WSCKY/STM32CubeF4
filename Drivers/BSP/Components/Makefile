@@ -1,7 +1,7 @@
 BUILD ?= $(shell pwd)/../../../Build/BSPDriver/Components
 
 ##### CS43L22 Audio Codec driver #####
-#SRCS += cs43l22/cs43l22.c
+SRCS += cs43l22/cs43l22.c
 
 ##### EXC7200 Touch-screen controller #####
 #SRCS += exc7200/exc7200.c
