@@ -1,0 +1,120 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+FLASH            0x0000000008000000 0x0000000000200000 xr
+RAM              0x0000000020000000 0x0000000000030000 xrw
+CCMRAM           0x0000000010000000 0x0000000000010000 rw
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+                0x0000000020030000                _estack = 0x20030000
+                0x0000000000000200                _Min_Heap_Size = 0x200
+                0x0000000000000400                _Min_Stack_Size = 0x400
+
+.isr_vector     0x0000000008000000        0x0
+                0x0000000008000000                . = ALIGN (0x4)
+ *(.isr_vector)
+                0x0000000008000000                . = ALIGN (0x4)
+
+.text           0x0000000008000000        0x0
+                0x0000000008000000                . = ALIGN (0x4)
+ *(.text)
+ *(.text*)
+ *(.glue_7)
+ .glue_7        0x0000000008000000        0x0 linker stubs
+ *(.glue_7t)
+ .glue_7t       0x0000000008000000        0x0 linker stubs
+ *(.eh_frame)
+ *(.init)
+ *(.fini)
+                0x0000000008000000                . = ALIGN (0x4)
+                0x0000000008000000                _etext = .
+
+.vfp11_veneer   0x0000000008000000        0x0
+ .vfp11_veneer  0x0000000008000000        0x0 linker stubs
+
+.v4_bx          0x0000000008000000        0x0
+ .v4_bx         0x0000000008000000        0x0 linker stubs
+
+.rodata         0x0000000008000000        0x0
+                0x0000000008000000                . = ALIGN (0x4)
+ *(.rodata)
+ *(.rodata*)
+                0x0000000008000000                . = ALIGN (0x4)
+
+.ARM.extab
+ *(.ARM.extab* .gnu.linkonce.armextab.*)
+
+.ARM            0x0000000008000000        0x0
+                0x0000000008000000                __exidx_start = .
+ *(.ARM.exidx*)
+                0x0000000008000000                __exidx_end = .
+
+.preinit_array  0x0000000008000000        0x0
+                [!provide]                        PROVIDE (__preinit_array_start, .)
+ *(.preinit_array*)
+                [!provide]                        PROVIDE (__preinit_array_end, .)
+
+.init_array     0x0000000008000000        0x0
+                [!provide]                        PROVIDE (__init_array_start, .)
+ *(SORT(.init_array.*))
+ *(.init_array*)
+                [!provide]                        PROVIDE (__init_array_end, .)
+
+.fini_array     0x0000000008000000        0x0
+                [!provide]                        PROVIDE (__fini_array_start, .)
+ *(SORT(.fini_array.*))
+ *(.fini_array*)
+                [!provide]                        PROVIDE (__fini_array_end, .)
+                0x0000000008000000                _sidata = LOADADDR (.data)
+
+.data           0x0000000020000000        0x0 load address 0x0000000008000000
+                0x0000000020000000                . = ALIGN (0x4)
+                0x0000000020000000                _sdata = .
+ *(.data)
+ *(.data*)
+                0x0000000020000000                . = ALIGN (0x4)
+                0x0000000020000000                _edata = .
+                0x0000000008000000                _siccmram = LOADADDR (.ccmram)
+
+.ccmram         0x0000000010000000        0x0 load address 0x0000000008000000
+                0x0000000010000000                . = ALIGN (0x4)
+                0x0000000010000000                _sccmram = .
+ *(.ccmram)
+ *(.ccmram*)
+                0x0000000010000000                . = ALIGN (0x4)
+                0x0000000010000000                _eccmram = .
+                0x0000000010000000                . = ALIGN (0x4)
+
+.bss            0x0000000020000000        0x0
+                0x0000000020000000                _sbss = .
+                0x0000000020000000                __bss_start__ = _sbss
+ *(.bss)
+ *(.bss*)
+ *(COMMON)
+                0x0000000020000000                . = ALIGN (0x4)
+                0x0000000020000000                _ebss = .
+                0x0000000020000000                __bss_end__ = _ebss
+
+._user_heap_stack
+                0x0000000020000000      0x600
+                0x0000000020000000                . = ALIGN (0x4)
+                [!provide]                        PROVIDE (end, .)
+                [!provide]                        PROVIDE (_end, .)
+                0x0000000020000200                . = (. + _Min_Heap_Size)
+ *fill*         0x0000000020000000      0x200 
+                0x0000000020000600                . = (. + _Min_Stack_Size)
+ *fill*         0x0000000020000200      0x400 
+                0x0000000020000600                . = ALIGN (0x4)
+
+/DISCARD/
+ libc.a(*)
+ libm.a(*)
+ libgcc.a(*)
+
+.ARM.attributes
+ *(.ARM.attributes)
+LOAD /home/kychu/GCC-ARM/gcc-arm-none-eabi-5_4-2016q3/arm-none-eabi/lib/libc.a
+OUTPUT(/home/kychu/MyGit/STM32CubeF4/Projects/STM32F429I-Discovery/GCC_PROJ/../../../Output/BSP_Demo/BSP_Demo.elf elf32-littlearm)
